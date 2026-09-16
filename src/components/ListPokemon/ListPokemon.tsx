@@ -168,7 +168,13 @@ export default function ListPokemon() {
                     columnWrapperStyle={styles.row}
                     contentContainerStyle={styles.listContent}
                     renderItem={({ item }) => (
-                        <Pressable style={styles.card} /*onPress={() => item.pokemon_id && router.push(`/pokemon/${item.pokemon_id}` as any)*/}>
+                        <Pressable
+                            style={styles.card}
+                            onPress={() =>
+                                item.pokemon_id &&
+                                router.push(`/pokemon/${item.pokemon_id}` as any)
+                            }
+                        >
                             {/* ID Badge */}
                             <View style={styles.idBadge}>
                                 <Text style={styles.idText}>{formatId(item.pokemon_id)}</Text>
@@ -273,7 +279,6 @@ const styles = StyleSheet.create({
         padding: 16,
         alignItems: "center",
         position: "relative",
-        // Soft elegant shadow
         shadowColor: "#1A202C",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
