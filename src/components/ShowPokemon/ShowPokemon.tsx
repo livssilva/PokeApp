@@ -1,6 +1,8 @@
 import Pokemon from "@/interface/Pokemon";
+import { alternarFavorito, ehFavorito } from "@/service/FavoritesStorage";
 import { Image } from "expo-image";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export const typeIcons: Record<string, any> = {
     normal: require('@/assets/icons/normal.svg'),
@@ -28,6 +30,43 @@ interface ShowPokemonProps {
 }
 
 export default function ShowPokemon({ pokemon }: ShowPokemonProps) {
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [isLoadingFavorite, setIsLoadingFavorite] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        const checkFavorite = async () => {
+            if (pokemon.pokemon_id) {
+                try {
+                    const fav = await ehFavorito(pokemon.pokemon_id);
+                    if (isMounted) {
+                        setIsFavorite(fav);
+                    }
+                } catch (e) {
+                    console.error("Erro ao checar favorito:", e);
+                } finally {
+                    if (isMounted) {
+                        setIsLoadingFavorite(false);
+                    }
+                }
+            }
+        };
+        checkFavorite();
+        return () => {
+            isMounted = false;
+        };
+    }, [pokemon.pokemon_id]);
+
+    const handleToggleFavorite = async () => {
+        if (!pokemon.pokemon_id) return;
+        try {
+            const newState = await alternarFavorito(pokemon.pokemon_id);
+            setIsFavorite(newState);
+        } catch (e) {
+            console.error("Erro ao alternar favorito:", e);
+        }
+    };
+
     const Type1Icon = pokemon.types ? (typeIcons[pokemon.types.type1]?.default || typeIcons[pokemon.types.type1]) : null;
     const Type2Icon = pokemon.types?.type2 ? (typeIcons[pokemon.types.type2]?.default || typeIcons[pokemon.types.type2]) : null;
 
@@ -62,6 +101,29 @@ export default function ShowPokemon({ pokemon }: ShowPokemonProps) {
                 style={styles.image}
                 contentFit="contain"
             />
+
+            {/* Botão de Favorito (Desafio 3 / Roteiro) */}
+            <Pressable
+                style={[
+                    styles.favoriteButton,
+                    isFavorite ? styles.favoriteButtonActive : styles.favoriteButtonInactive,
+                ]}
+                onPress={handleToggleFavorite}
+                disabled={isLoadingFavorite}
+            >
+                {isLoadingFavorite ? (
+                    <ActivityIndicator size="small" color="#E53E3E" />
+                ) : (
+                    <Text
+                        style={[
+                            styles.favoriteButtonText,
+                            isFavorite ? styles.favoriteButtonTextActive : styles.favoriteButtonTextInactive,
+                        ]}
+                    >
+                        {isFavorite ? "❤️ Remover dos favoritos" : "🤍 Adicionar aos favoritos"}
+                    </Text>
+                )}
+            </Pressable>
 
             {/* 12º Tipos */}
             <View style={styles.types}>
@@ -180,6 +242,35 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
+    favoriteButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 24,
+        marginVertical: 12,
+        minWidth: 220,
+        borderWidth: 1.5,
+    },
+    favoriteButtonInactive: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E2E8F0",
+    },
+    favoriteButtonActive: {
+        backgroundColor: "#FFF5F5",
+        borderColor: "#FEB2B2",
+    },
+    favoriteButtonText: {
+        fontSize: 15,
+        fontWeight: "700",
+    },
+    favoriteButtonTextInactive: {
+        color: "#4A5568",
+    },
+    favoriteButtonTextActive: {
+        color: "#E53E3E",
+    },
     infoCard: {
         width: "100%",
         backgroundColor: "#FFFFFF",

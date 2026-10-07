@@ -35,7 +35,7 @@ class Requests {
         }
     }
 
-    async fetchPokemonData(pokemon_name: string) {
+    async fetchPokemonData(pokemon_name: string | number) {
         try {
             const pokemon = {
                 pokemon_info: {} as any,
